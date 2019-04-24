@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import torch
 import torch.utils.data
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 DATA_FILENAME = 'billboard_lyrics_1964-2015.csv'
 
@@ -26,4 +27,7 @@ full_dataset = pd.read_csv(os.path.join(data_dir, DATA_FILENAME), encoding='lati
 train_len = int(0.8 * len(full_dataset))
 test_len = len(full_dataset) - train_len
 train, test = torch.utils.data.random_split(full_dataset, [train_len, test_len])
+
+# "Naive" analysis with tfidf
+vectorizer = TfidfVectorizer()
 
