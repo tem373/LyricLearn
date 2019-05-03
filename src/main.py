@@ -7,17 +7,6 @@ from sklearn.linear_model import Ridge
 
 DATA_FILENAME = 'billboard_lyrics_1964-2015.csv'
 
-class RNN(torch.nn.Module):
-    """ Module is the base class for all Pytorch NN modules"""
-    def __init__(self):
-        pass
-
-
-class LSTM(torch.nn.Module):
-    """ Add docstring :D"""
-    def __init__(self):
-        pass
-
 # File I/O
 root_dir = os.path.abspath('..')
 data_dir = os.path.join(root_dir, 'data')
@@ -37,3 +26,5 @@ corpus = list(full_dataset['Lyrics'].values.astype('U')) # Unicode column values
 X = vectorizer.fit_transform(corpus)
 
 # Use ridge regression (and regular linear regression?) - ridge regression helps eliminate collinearity
+
+

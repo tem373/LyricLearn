@@ -12,12 +12,6 @@ class RNN(torch.nn.Module):
         pass
 
 
-class LSTM(torch.nn.Module):
-    """ Add docstring :D"""
-    def __init__(self):
-        pass
-
-
 def groupSongs(filename):
     lines = open(filename, encoding='latin-1').read().strip().split('\n')
     song_dict = {}
