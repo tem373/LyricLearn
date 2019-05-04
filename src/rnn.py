@@ -13,12 +13,6 @@ class RNN(torch.nn.Module):
         pass
 
 
-class LSTM(torch.nn.Module):
-    """ Add docstring :D"""
-    def __init__(self):
-        pass
-
-# Creates a dict data structure mapping each song to the year it was produced
 def groupSongs(filename):
     lines = open(filename, encoding='latin-1').read().strip().split('\n')
     song_dict = {}
