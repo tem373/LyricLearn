@@ -1,10 +1,13 @@
-import os, csv, unicodedata, torch
+import os, csv, unicodedata, torch, string
 import pandas as pd
 import torch.utils.data
 from io import open
 
 data_filename = 'billboard_lyrics_1964-2015.csv'
 file = '../data/billboard_lyrics_1964-2015.csv'
+
+alphabet = string.ascii_letters
+num_letters = len(alphabet)
 
 
 class RNN(torch.nn.Module):
@@ -22,18 +25,29 @@ def groupSongs(filename):
             song_dict[line_list[4]] = line_list[3]
     return song_dict
 
-# How to convert the lyrics to tensors
+def getLetterIndex(letter):
+    return alphabet.find(letter)
+
+def letterToTensor(letter):
+    tensor = torch.zeros(1, num_letters)
+    tensor[0][getLetterIndex(letter)] = 1
+    return tensor
+
 def lyricsToTensor(lyrics):
-    lyric_list = lyrics.split()
-    lyric_tensor = torch.cuda.FloatTensor(lyric_list)
-    return lyric_tensor
+    tensor = torch.zeros(len(lyrics), 1, num_letters)
+    for li, letter in enumerate(lyrics):
+        tensor[li][0][getLetterIndex(letter)] = 1
+    return tensor
 
 s_dict = groupSongs(file)
 f_key = list(s_dict.keys())[1]
-#print(f_key + " Year: " + s_dict[f_key])
+print(f_key + " Year: " + s_dict[f_key])
 
 sample = "this is a sample lyric"
-print(lyricsToTensor(sample))
+#print(lyricsToTensor(sample))
+print(lyricsToTensor(f_key))
+
+
 
 
 
