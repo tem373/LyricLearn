@@ -3,8 +3,6 @@ import pandas as pd
 import torch
 import torch.utils.data
 
-from scipy import sparse
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import Ridge
@@ -23,9 +21,6 @@ os.path.exists(root_dir), os.path.exists(data_dir)
 # Load dataset
 full_dataset = pd.read_csv(os.path.join(data_dir, DATA_FILENAME), encoding='latin-1')
 x_train, x_test, y_train, y_test = train_test_split(list(full_dataset['Lyrics'].values.astype('U')), list(full_dataset['Year']))
-#train_len = int(0.8 * len(full_dataset))
-#test_len = len(full_dataset) - train_len
-#train, test = torch.utils.data.random_split(full_dataset, [train_len, test_len])
 
 ################################ "Naive" tf-idf analysis ####################################
 
@@ -39,7 +34,6 @@ test_vec = vectorizer.transform(x_test)
 
 # Build Ridge Model (linear regression plus regularization)
 clf = Ridge(alpha=1.0, random_state=1)
-#y_train = train['Year']
 clf.fit(train_vec, y_train)
 
 # Validate on test data
