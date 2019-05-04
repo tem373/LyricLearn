@@ -1,5 +1,6 @@
 import os, csv, unicodedata, torch, string
 import pandas as pd
+import torch.nn as nn
 import torch.utils.data
 from io import open
 
@@ -10,10 +11,24 @@ alphabet = string.ascii_letters
 num_letters = len(alphabet)
 
 
-class RNN(torch.nn.Module):
+class RNN(nn.Module):
     """ Module is the base class for all Pytorch NN modules"""
-    def __init__(self):
-        pass
+    def __init__(self, input_size, hidden_size, output_size):
+        super(RNN, self).__init__()
+        self.hidden_size = hidden_size
+        self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
+        self.i2o = nn.Linear(input_size + hidden_size, output_size)
+        self.softmax = nn.LogSoftmax(dim=1)
+
+    def forward(self, input, hidden):
+        combined = torch.cat((input, hidden), 1)
+        hidden = self.i2h(combined)
+        output = self.i2o(combined)
+        output = self.softmax(output)
+        return output, hidden
+
+    def initHidden(self):
+        return torch.zeros(1, self.hidden_size)
 
 
 def groupSongs(filename):
@@ -25,13 +40,16 @@ def groupSongs(filename):
             song_dict[line_list[4]] = line_list[3]
     return song_dict
 
+
 def getLetterIndex(letter):
     return alphabet.find(letter)
+
 
 def letterToTensor(letter):
     tensor = torch.zeros(1, num_letters)
     tensor[0][getLetterIndex(letter)] = 1
     return tensor
+
 
 def lyricsToTensor(lyrics):
     tensor = torch.zeros(len(lyrics), 1, num_letters)
@@ -39,13 +57,14 @@ def lyricsToTensor(lyrics):
         tensor[li][0][getLetterIndex(letter)] = 1
     return tensor
 
-s_dict = groupSongs(file)
-f_key = list(s_dict.keys())[1]
-print(f_key + " Year: " + s_dict[f_key])
 
-sample = "this is a sample lyric"
-#print(lyricsToTensor(sample))
-print(lyricsToTensor(f_key))
+# s_dict = groupSongs(file)
+# f_key = list(s_dict.keys())[1]
+# print(f_key + " Year: " + s_dict[f_key])
+#
+# sample = "this is a sample lyric"
+# #print(lyricsToTensor(sample))
+# print(lyricsToTensor(f_key))
 
 
 
