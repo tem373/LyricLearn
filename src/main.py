@@ -6,6 +6,8 @@ import torch.utils.data
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
 
 import lstm
 import rnn
@@ -32,18 +34,37 @@ vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,3), max_features=200
 train_vec = vectorizer.fit_transform(x_train) # Unicode column values from dataset
 test_vec = vectorizer.transform(x_test)
 
-# Build Ridge Model (linear regression plus regularization)
+
+# Build vanilla linear regression model
+reg = LinearRegression(fit_intercept=True) # Intercept should be 1989 (halfway between 1965 & 2015)
+reg.fit(train_vec, y_train)
+
+# Validate on test data
+reg_preds = reg.predict(test_vec)
+rounded_reg = [int(round(x)) for x in reg_preds]
+
+print("\n\n LINEAR REGRESSION \n\n")
+for i in range(0, int(len(rounded_reg)/50)):
+    print("Actual value: " + str(y_test[i]))
+    print("Predicted value (Linear): " + str(rounded_reg[i]))
+    print("Error: " + str(abs(y_test[i] - rounded_reg[i])))
+    print("")
+
+# Build Ridge model (linear regression plus regularization)
 clf = Ridge(alpha=1.0, random_state=1)
 clf.fit(train_vec, y_train)
 
 # Validate on test data
-predictions = clf.predict(test_vec)
-rounded_predictions = [int(round(x)) for x in predictions]
+ridge_preds = clf.predict(test_vec)
+rounded_predictions = [int(round(x)) for x in ridge_preds]
 
-for i in range(0, len(rounded_predictions)):
+print("\n\n RIDGE REGRESSION \n\n")
+for i in range(0, int(len(rounded_predictions)/50)):
     print("Actual value: " + str(y_test[i]))
-    print("Predicted value: " + str(rounded_predictions[i]))
+    print("Predicted value (Ridge): " + str(rounded_predictions[i]))
     print("Error: " + str(abs(y_test[i] - rounded_predictions[i])))
     print("")
 
-# Evaluate using sklearn metrics
+# Evaluate using sklearn metrics - root mean squared error
+print("Linear Regression Mean Squared Error:" + str(mean_squared_error(y_test, reg_preds)))
+print("Ridge Mean Squared Error:" + str(mean_squared_error(y_test, ridge_preds)))
