@@ -54,9 +54,7 @@ def yearFromOutput(output, songdict):
 
 def randomTrainingExample(song_dict):
     lyric, year = random.choice(list(song_dict.items()))
-    year_tensor = torch.tensor(int(year), dtype=torch.long)
-    print("YEAR TENSOR")
-    print(year_tensor)
+    year_tensor = torch.tensor([int(year) - 1965], dtype=torch.long)
     lyric_tensor = lyricsToTensor(lyric)
     return year, lyric, year_tensor, lyric_tensor
 
