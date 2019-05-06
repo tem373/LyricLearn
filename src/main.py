@@ -79,16 +79,8 @@ def main():
     #TODO: try tfidf with different n-grams
 
     ################################ RNN analysis ####################################
-    song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME))
-    sample = "this is a sample lyric"
-    input = utils.lyricsToTensor(sample)
-
+    song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME)) # 4634 rows after getting rid of NAs (batch = 2317)
     rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
-    hidden = torch.zeros(1, RNN_N_HIDDEN)   # Initialize hidden layer to zeros
-    output, next_hidden = rnnc(input[0], hidden)
-    #print(output)
-    #year = utils.yearFromOutput(output, song_dict)
-    #print(year)
 
     # Set up the training
     #criterion = nn.NLLLoss()
