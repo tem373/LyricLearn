@@ -106,7 +106,7 @@ def main():
         current_loss += loss
         year_guess = utils.yearFromOutput(output, song_dict)
         correct = '✓' if year_guess == year else '✗ (%s)' % year
-        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric, year_guess, correct))
+        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
 
 
     #TODO: try different activation functions and write which work and why
