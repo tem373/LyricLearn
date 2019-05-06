@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import time
 import torch
 import torch.utils.data
 import torch.nn as nn
@@ -54,7 +55,6 @@ def main():
         print("Actual value: " + str(y_test[i]))
         print("Predicted value (Linear): " + str(rounded_reg[i]))
         print("Error: " + str(abs(y_test[i] - rounded_reg[i])))
-        print("")
 
     # Build Ridge model (linear regression plus regularization)
     clf = Ridge(alpha=1.0, random_state=1)
@@ -69,7 +69,6 @@ def main():
         print("Actual value: " + str(y_test[i]))
         print("Predicted value (Ridge): " + str(rounded_predictions[i]))
         print("Error: " + str(abs(y_test[i] - rounded_predictions[i])))
-        print("")
 
     # Evaluate using sklearn metrics - root mean squared error
     print("Linear Regression Mean Squared Error:" + str(mean_squared_error(y_test, reg_preds)))
@@ -81,20 +80,33 @@ def main():
 
     ################################ RNN analysis ####################################
     song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME))
-    f_key = list(song_dict.keys())[0]
     sample = "this is a sample lyric"
     input = utils.lyricsToTensor(sample)
 
     rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
     hidden = torch.zeros(1, RNN_N_HIDDEN)   # Initialize hidden layer to zeros
     output, next_hidden = rnnc(input[0], hidden)
-    print(output)
-    year = utils.yearFromOutput(output, song_dict)
-    print(year)
+    #print(output)
+    #year = utils.yearFromOutput(output, song_dict)
+    #print(year)
 
     # Set up the training
-    criterion = nn.NLLLoss()
-    learning_rate = 0.005  # If you set this too high, it might explode. If too low, it might not learn
+    #criterion = nn.NLLLoss()
+    #learning_rate = 0.005  # If you set this too high, it might explode. If too low, it might not learn
+
+    current_loss = 0
+    all_losses = []
+    n_iters = 100000
+
+    # Main training loop
+    start = time.time()
+    for iter in range(1, n_iters + 1):
+        year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(song_dict)
+        output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc)
+        current_loss += loss
+        year_guess = utils.yearFromOutput(output, song_dict)
+        correct = '✓' if year_guess == year else '✗ (%s)' % year
+        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric, year_guess, correct))
 
 
     #TODO: try different activation functions and write which work and why
