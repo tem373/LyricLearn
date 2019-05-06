@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import torch
 import torch.utils.data
+import torch.nn as nn
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -11,9 +12,13 @@ from sklearn.metrics import mean_squared_error
 
 import lstm
 import rnn
+import utils
 
 DATA_FILENAME = 'billboard_lyrics_1964-2015.csv'
 YEAR_ERROR = 2
+RNN_N_HIDDEN = 128
+N_CATEGORIES = 51 # 51 years in the dataset
+
 
 def main():
     # File I/O
@@ -75,7 +80,26 @@ def main():
     #TODO: try tfidf with different n-grams
 
     ################################ RNN analysis ####################################
+    song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME))
+    f_key = list(song_dict.keys())[0]
+    sample = "this is a sample lyric"
+    input = utils.lyricsToTensor(sample)
+
+    rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
+    hidden = torch.zeros(1, RNN_N_HIDDEN)   # Initialize hidden layer to zeros
+    output, next_hidden = rnnc(input[0], hidden)
+    print(output)
+    year = utils.yearFromOutput(output, song_dict)
+    print(year)
+
+    # Set up the training
+    criterion = nn.NLLLoss()
+    learning_rate = 0.005  # If you set this too high, it might explode. If too low, it might not learn
+
+
+    #TODO: try different activation functions and write which work and why
     #TODO: online learning? not enough memory to do in batches?
+    #TODO: tweak learning rate
 
 
 if __name__ == "__main__":
