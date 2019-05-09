@@ -2,8 +2,6 @@ import os
 import pandas as pd
 import time
 import torch
-import torch.utils.data
-import torch.nn as nn
 
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
@@ -80,25 +78,41 @@ def main():
 
     ################################ RNN analysis ####################################
     song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME)) # 4634 rows after getting rid of NAs (batch = 2317)
+    # Split into training and testing
+    split_idx = int(len(song_dict) * 0.8)
+    train_dict = dict(list(song_dict.items())[:split_idx])
+    test_dict = dict(list(song_dict.items())[split_idx:])
+    print(len(train_dict))
+    print(len(test_dict))
+
     rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
 
     # Set up the training
-    #criterion = nn.NLLLoss()
-    #learning_rate = 0.005  # If you set this too high, it might explode. If too low, it might not learn
-
     current_loss = 0
-    all_losses = []
-    n_iters = 100000
+    n_iters = 1000
+    n_epochs = 5
+    batch_size = 2317
 
     # Main training loop
     start = time.time()
-    for iter in range(1, n_iters + 1):
-        year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(song_dict)
-        output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc)
-        current_loss += loss
-        year_guess = utils.yearFromOutput(output, song_dict)
-        correct = '✓' if year_guess == year else '✗ (%s)' % year
-        print('%d %d%% (%s) %.4f %s / %s %s' % (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
+    for epoch in range(1, n_epochs + 1):
+
+        for iter in range(n_iters):
+            year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(song_dict)
+            output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc)
+            current_loss += loss
+
+            year_guess = utils.yearFromOutput(output, song_dict)
+            correct = '✓' if year_guess == year else '✗ (%s)' % year
+            print('Epoch: %d %d %d%% (%s) %.4f %s / %s %s' % (epoch, iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
+
+    # for iter in range(1, n_iters + 1):
+    #     year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(song_dict)
+    #     output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc, optimizer)
+    #     current_loss += loss
+    #     year_guess = utils.yearFromOutput(output, song_dict)
+    #     correct = '✓' if year_guess == year else '✗ (%s)' % year
+    #     print('Epoch: %d %d %d%% (%s) %.4f %s / %s %s' % epoch, (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
 
 
     #TODO: try different activation functions and write which work and why
