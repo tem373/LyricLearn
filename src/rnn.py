@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.utils.data
-
+import torch.optim as optim
 
 class RNN(nn.Module):
     """ Module is the base class for all Pytorch NN modules"""
@@ -10,8 +10,9 @@ class RNN(nn.Module):
         self.i2h = nn.Linear(input_size + hidden_size, hidden_size)
         self.i2o = nn.Linear(input_size + hidden_size, output_size)
         self.softmax = nn.LogSoftmax(dim=1)
-        self.criterion = nn.NLLLoss()
-        self.learning_rate = 0.05 # If you set this too high, it might explode. If too low, it might not learn
+        self.criterion = nn.NLLLoss() # could try criterion = nn.CrossEntropyLoss()
+        self.learning_rate = 0.005 # If you set this too high, it might explode. If too low, it might not learn
+        self.optimizer = optim.SGD(self.parameters(), lr=self.learning_rate)
 
     def forward(self, input, hidden):
         combined = torch.cat((input, hidden), 1)

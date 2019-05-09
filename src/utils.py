@@ -61,14 +61,16 @@ def randomTrainingExample(song_dict):
 
 def trainRNN(category_tensor, line_tensor, rnn):
     hidden = rnn.initHidden()
-    rnn.zero_grad()
+    rnn.optimizer.zero_grad() # zero the parameter gradients
+    #rnn.zero_grad()
 
     for i in range(line_tensor.size()[0]):
         output, hidden = rnn(line_tensor[i], hidden)
 
     loss = rnn.criterion(output, category_tensor)
     loss.backward()
+    rnn.optimizer.step()
     # Add parameters' gradients to their values, multiplied by learning rate
-    for p in rnn.parameters():
-        p.data.add_(-rnn.learning_rate, p.grad.data)
+    #for p in rnn.parameters():
+    #    p.data.add_(-rnn.learning_rate, p.grad.data)
     return output, loss.item()
