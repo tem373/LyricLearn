@@ -15,7 +15,7 @@ def groupSongs(filename):
     for line in lines:
         line_list = line.split(',')
         # Throwaway label & get rid of unavailable lyrics
-        if line_list[4] != 'Lyrics' and line_list[4] not in ["  ", "NA", "instrumental"]:
+        if 'Year' not in str(line_list[3]) and line_list[4] not in ["  ", "NA", "instrumental"]:
             song_dict[line_list[4]] = line_list[3]
     return song_dict
 
