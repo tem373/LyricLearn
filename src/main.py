@@ -88,8 +88,8 @@ def main():
         encoded_years, encoded_lyrics, vocab_len = lt.TokenizeDataset(song_dict)
 
         # Set up the training - use minibatch
-        n_iters = 11
-        n_epochs = 100
+        #n_iters = 11
+        n_epochs = 10
         batch_size = 100  # 11 batches of size 337 so iters = 11 (11 * 337 = 3707)
 
         # Split into training, validation, testing - train= 80% | valid = 10% | test = 10%
@@ -182,7 +182,6 @@ def main():
 
                 # loss stats
                 if counter % print_every == 0:
-                    print("STARTING")
                     # Get validation loss
                     val_h = lstmc.init_hidden(batch_size)
                     val_losses = []
@@ -192,10 +191,6 @@ def main():
                         # Creating new variables for the hidden state, otherwise
                         # we'd backprop through the entire training history
                         val_h = tuple([each.data for each in val_h])
-
-                        #print("STARTING")
-                        #print(len(inputs))
-                        #print(len(val_h))
 
                         inputs = inputs.type(torch.LongTensor)
                         output, val_h = lstmc(inputs, val_h) #TODO: problem here
@@ -209,6 +204,45 @@ def main():
                           "Loss: {:.6f}...".format(loss.item()),
                           "Val Loss: {:.6f}".format(np.mean(val_losses)))
 
+        # Get test data loss and accuracy
+
+        test_losses = []  # track loss
+        num_correct = 0
+
+        # init hidden state
+        h = lstmc.init_hidden(batch_size)
+
+        lstmc.eval()
+        # iterate over test data
+        for inputs, labels in test_loader:
+
+            # Creating new variables for the hidden state, otherwise
+            # we'd backprop through the entire training history
+            h = tuple([each.data for each in h])
+
+            # get predicted outputs
+            inputs = inputs.type(torch.LongTensor)
+            output, h = lstmc(inputs, h)
+
+            # calculate loss
+            test_loss = criterion(output.squeeze(), labels.float())
+            test_losses.append(test_loss.item())
+
+            # convert output probabilities to predicted class (0 or 1)
+            pred = torch.round(output.squeeze())  # rounds to the nearest integer
+
+            # compare predictions to true label
+            correct_tensor = pred.eq(labels.float().view_as(pred))
+            correct = np.squeeze(correct_tensor.numpy())
+            num_correct += np.sum(correct)
+
+        # -- stats! -- ##
+        # avg test loss
+        print("Test loss: {:.3f}".format(np.mean(test_losses)))
+
+        # accuracy over all test data
+        test_acc = num_correct / len(test_loader.dataset)
+        print("Test accuracy: {:.3f}".format(test_acc))
 
 
         #for epoch in range(0, n_epochs):
