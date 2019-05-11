@@ -3,7 +3,10 @@ import string
 import random
 import math
 import time
+import matplotlib as plt
 from io import open
+
+plt.use('TkAgg')
 
 alphabet = string.ascii_letters
 n_letters = len(alphabet)
@@ -45,7 +48,7 @@ def timeSince(since):
     return '%dm %ds' % (m, s)
 
 
-def yearFromOutput(output, songdict):
+def yearFromOutput(output):
     """ Formats the output to consist of just the predicted year. """
     top_n, top_i = output.topk(1)
     category_i = top_i[0].item()
@@ -69,8 +72,32 @@ def trainRNN(category_tensor, line_tensor, rnn):
 
     loss = rnn.criterion(output, category_tensor)
     loss.backward()
+
+    # clip gradient to address exploding gradient problem
+    clip = 5
+    torch.nn.utils.clip_grad_norm_(rnn.parameters(), clip)
+
     rnn.optimizer.step()
+
+
     # Add parameters' gradients to their values, multiplied by learning rate
-    #for p in rnn.parameters():
-    #    p.data.add_(-rnn.learning_rate, p.grad.data)
+    for p in rnn.parameters():
+        p.data.add_(-rnn.learning_rate, p.grad.data)
     return output, loss.item()
+
+
+def testRNN():
+    pass
+
+
+def plotAccuracy(xvals, yvals):
+    plt.pyplot.plot(xvals, yvals)
+    plt.pyplot.xlabel('Epoch')
+    plt.pyplot.ylabel('Accuracy (% Correct Guesses)')
+    plt.pyplot.savefig("../results/accuracy.png")
+
+def plotLoss(xvals, yvals):
+    plt.pyplot.plot(xvals, yvals)
+    plt.pyplot.xlabel('Epoch')
+    plt.pyplot.ylabel('Loss')
+    plt.pyplot.savefig("../results/losses.png")

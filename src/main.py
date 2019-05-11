@@ -31,6 +31,9 @@ def main():
     x_train, x_test, y_train, y_test = train_test_split(list(full_dataset['Lyrics'].values.astype('U')), list(full_dataset['Year']))
 
     ################################ "Naive" tf-idf analysis ####################################
+    # TODO: try different regularization strengths
+    # TODO: try multiple train test split configurations
+    # TODO: try tfidf with different n-grams
 
     # Text Preprocessing
     vectorizer = TfidfVectorizer(lowercase=True, ngram_range=(1,3), max_features=20000)
@@ -51,9 +54,7 @@ def main():
 
     print("\n\n LINEAR REGRESSION \n\n")
     for i in range(0, int(len(rounded_reg)/50)):
-        print("Actual value: " + str(y_test[i]))
-        print("Predicted value (Linear): " + str(rounded_reg[i]))
-        print("Error: " + str(abs(y_test[i] - rounded_reg[i])))
+        print("Actual: " + str(y_test[i]) + " Predicted: " + str(rounded_reg[i]) + " Error: " + str(abs(y_test[i] - rounded_reg[i])))
 
     # Build Ridge model (linear regression plus regularization)
     clf = Ridge(alpha=1.0, random_state=1)
@@ -65,17 +66,11 @@ def main():
 
     print("\n\n RIDGE REGRESSION \n\n")
     for i in range(0, int(len(rounded_predictions)/50)):
-        print("Actual value: " + str(y_test[i]))
-        print("Predicted value (Ridge): " + str(rounded_predictions[i]))
-        print("Error: " + str(abs(y_test[i] - rounded_predictions[i])))
+        print("Actual: " + str(y_test[i]) + " Predicted: " + str(rounded_predictions[i]) + " Error: " + str(abs(y_test[i] - rounded_predictions[i])))
 
     # Evaluate using sklearn metrics - root mean squared error
     print("Linear Regression Mean Squared Error:" + str(mean_squared_error(y_test, reg_preds)))
     print("Ridge Mean Squared Error:" + str(mean_squared_error(y_test, ridge_preds)))
-
-    #TODO: try different regularization strengths
-    #TODO: try multiple train test split configurations
-    #TODO: try tfidf with different n-grams
 
     ################################ RNN analysis ####################################
     song_dict = utils.groupSongs(os.path.join(data_dir, DATA_FILENAME)) # 4634 rows after getting rid of NAs (batch = 2317)
@@ -86,44 +81,42 @@ def main():
     rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
 
     # Set up the training - use minibatch
-    current_loss = 0
     n_iters = 1000
     n_epochs = 100
-    batch_size = 337 # 11 batches of size 337
+    batch_size = 337 # 11 batches of size 337 so iters = 11 (11 * 337 = 3707)
+
+    # Loss function + accuracy reporting
+    current_loss = 0
     losses = np.zeros(n_epochs)  # For plotting
+    accuracy = np.zeros(n_epochs)
 
     # Main training loop
     start = time.time()
     for epoch in range(1, n_epochs + 1):
 
-        for iter in range(n_iters):
+        for iter in range(n_iters): #TODO: make this 11 - have each batch be fed in once per iter
             year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(train_dict)
             if (year == '\"Year\"'):
                 continue
             output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc)
-            current_loss += loss
-            losses[epoch] += loss
 
-            year_guess = utils.yearFromOutput(output, song_dict)
+            year_guess = utils.yearFromOutput(output)
             correct = '✓' if int(year_guess) == int(year) else '✗ (%s)' % year
             print('Epoch: %d %d %d%% (%s) %.4f %s / %s %s' % (epoch, iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
 
+            losses[epoch] += loss  # Create loss array
+            if (correct == '✓'):
+                accuracy[epoch] += 1 # Add 1 for each correct guess
+
+        accuracy[epoch] /= 1000
+
+    xaxis = np.arange(1, n_epochs+1)
+    utils.plotAccuracy(xaxis, accuracy)
+    utils.plotLoss(xaxis, losses)
+
     #TODO: testing loop
-
-    # for iter in range(1, n_iters + 1):
-    #     year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(song_dict)
-    #     output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc, optimizer)
-    #     current_loss += loss
-    #     year_guess = utils.yearFromOutput(output, song_dict)
-    #     correct = '✓' if year_guess == year else '✗ (%s)' % year
-    #     print('Epoch: %d %d %d%% (%s) %.4f %s / %s %s' % epoch, (iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
-
-
-    #TODO: try different activation functions and write which work and why
-    #TODO: tweak learning rate
-    #TODO: clip gradient? exploding gradient problem
-    #clip = 5
-    #torch.nn.utils.clip_grad_norm(model.parameters(),clip)
+    for lyric, year in test_dict:
+        pass
 
 if __name__ == "__main__":
     main()
