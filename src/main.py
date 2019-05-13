@@ -90,7 +90,7 @@ def main():
         # Set up the training - use minibatch
         #n_iters = 11
         n_epochs = 10
-        batch_size = 100  # 11 batches of size 337 so iters = 11 (11 * 337 = 3707)
+        batch_size = 16 #100  # 11 batches of size 337 so iters = 11 (11 * 337 = 3707)
 
         # Split into training, validation, testing - train= 80% | valid = 10% | test = 10%
         split_frac = 0.8
@@ -127,17 +127,11 @@ def main():
         # print('Sample label size: ', sample_y.size())  # batch_size
         # print('Sample label: \n', sample_y)
 
-        output_size = 1
+        output_size = 51
         embedding_dim = 400
-        hidden_dim = 32 #256
+        hidden_dim = 128 #256
         n_layers = 2
         lstmc = lstm.LyricLSTM(vocab_len, output_size, embedding_dim, hidden_dim, n_layers)
-
-        #split_idx = int(len(song_dict) * 0.8) # Split into training and testing
-        #train_dict = dict(list(song_dict.items())[:split_idx]) # 3707 training samples
-        #test_dict = dict(list(song_dict.items())[split_idx:])  # 927 test samples
-
-        #rnnc = rnn.RNN(utils.n_letters, RNN_N_HIDDEN, N_CATEGORIES) # Initialize RNN class
 
         # Loss function + accuracy reporting
         current_loss = 0
@@ -145,7 +139,7 @@ def main():
         accuracy = np.zeros(n_epochs)
 
         lr = 0.001
-        criterion = nn.BCELoss()
+        criterion = nn.CrossEntropyLoss() #nn.BCELoss()
         optimizer = torch.optim.Adam(lstmc.parameters(), lr=lr)
         counter = 0
         print_every = 1
@@ -167,14 +161,15 @@ def main():
                 h = tuple([each.data for each in h])
 
                 # zero accumulated gradients
-                lstmc.zero_grad()
+                #lstmc.zero_grad()
+                optimizer.zero_grad()
 
                 # get the output from the model
-                inputs = inputs.type(torch.LongTensor)
+                #inputs = inputs.type(torch.LongTensor)
                 output, h = lstmc(inputs, h)
 
                 # calculate the loss and perform backprop
-                loss = criterion(output.squeeze(), labels.float())
+                loss = criterion(output.squeeze(), labels.long())#.float())
                 loss.backward()
                 # `clip_grad_norm` helps prevent the exploding gradient problem in RNNs / LSTMs.
                 nn.utils.clip_grad_norm_(lstmc.parameters(), clip)
@@ -194,7 +189,7 @@ def main():
 
                         inputs = inputs.type(torch.LongTensor)
                         output, val_h = lstmc(inputs, val_h) #TODO: problem here
-                        val_loss = criterion(output.squeeze(), labels.float())
+                        val_loss = criterion(output.squeeze(), labels.long())#.float())
 
                         val_losses.append(val_loss.item())
 
@@ -230,6 +225,9 @@ def main():
 
             # convert output probabilities to predicted class (0 or 1)
             pred = torch.round(output.squeeze())  # rounds to the nearest integer
+            print(pred.size())
+            print("Prediction: ")
+            print(yearFromOutput(pred))
 
             # compare predictions to true label
             correct_tensor = pred.eq(labels.float().view_as(pred))
@@ -244,32 +242,10 @@ def main():
         test_acc = num_correct / len(test_loader.dataset)
         print("Test accuracy: {:.3f}".format(test_acc))
 
-
-        #for epoch in range(0, n_epochs):
-            # for iter in range(n_iters): #TODO: make this 11 - have each batch be fed in once per iter
-            #     year, lyric, year_tensor, lyric_tensor = utils.randomTrainingExample(train_dict)
-            #     if (year == '\"Year\"'):
-            #         continue
-            #     output, loss = utils.trainRNN(year_tensor, lyric_tensor, rnnc)
-            #
-            #     year_guess = utils.yearFromOutput(output)
-            #     correct = '✓' if int(year_guess) == int(year) else '✗ (%s)' % year
-            #     print('Epoch: %d %d %d%% (%s) %.4f %s / %s %s' % (epoch, iter, iter / n_iters * 100, utils.timeSince(start), loss, lyric[0:25], year_guess, correct))
-            #
-            #     losses[epoch] += loss  # Create loss array
-            #     if (correct == '✓'):
-            #         accuracy[epoch] += 1 # Add 1 for each correct guess
-            #
-            # accuracy[epoch] /= 1000
-
         # Plot losses and accuracy indexed over each epoch for training
         xaxis = np.arange(1, n_epochs+1)
         #utils.plotAccuracy(xaxis, accuracy)
         #utils.plotLoss(xaxis, losses)
-
-        # Testing loop
-        #for lyric, year in test_dict.items():
-        #    pass
 
 if __name__ == "__main__":
     main()

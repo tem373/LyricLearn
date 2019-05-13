@@ -8,7 +8,7 @@ def TokenizeDataset(songdict):
     years_raw = []
     for lyric, year in songdict.items():
         lyrics_raw.append(lyric)
-        years_raw.append(int(year))
+        years_raw.append(int(year)-1965)
 
     # Create vocab to int
     all_text = ' '.join(lyrics_raw)

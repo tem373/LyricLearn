@@ -25,7 +25,8 @@ class LyricLSTM(nn.Module):
 
         # linear and sigmoid layers
         self.fc = nn.Linear(hidden_dim, output_size)
-        self.sig = nn.Sigmoid()
+        #self.sig = nn.Sigmoid()
+        self.softmax = nn.LogSoftmax(dim=-1) #use -1 to apply to last axis
 
     def forward(self, x, hidden):
         """
@@ -38,18 +39,21 @@ class LyricLSTM(nn.Module):
         lstm_out, hidden = self.lstm(embeds, hidden)
 
         # stack up lstm outputs
-        lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim)
+        #lstm_out = lstm_out.contiguous().view(-1, self.hidden_dim) # DONT DO THIS
 
         # dropout and fully-connected layer
         out = self.dropout(lstm_out)
-        out = self.fc(out)
+        #out = self.fc(out)
         # sigmoid function
-        sig_out = self.sig(out)
-
+        #sig_out = self.sig(out) #TODO: error here start
+        #sig_out = self.softmax(out)
+        sig_out = self.softmax(self.fc(out))
         # reshape to be batch_size first
-        sig_out = sig_out.view(batch_size, -1)
+        #sig_out = sig_out.view(batch_size, -1)
         sig_out = sig_out[:, -1]  # get last batch of labels
-
+        #print(sig_out.size())
+        #sig_out = sig_out.type(torch.LongTensor)
+        #TODO: error here end
         # return last sigmoid output and hidden state
         return sig_out, hidden
 
