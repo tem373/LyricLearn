@@ -88,7 +88,6 @@ def main():
         encoded_years, encoded_lyrics, vocab_len = lt.TokenizeDataset(song_dict)
 
         # Set up the training - use minibatch
-        #n_iters = 11
         n_epochs = 10
         batch_size = 16 #100  # 11 batches of size 337 so iters = 11 (11 * 337 = 3707)
 
@@ -117,16 +116,6 @@ def main():
         valid_loader = DataLoader(valid_data, shuffle=True, batch_size=batch_size, drop_last=True)
         test_loader = DataLoader(test_data, shuffle=True, batch_size=batch_size, drop_last=True)
 
-        # obtain one batch of training data - for visualization
-        # dataiter = iter(train_loader)
-        # sample_x, sample_y = dataiter.next()
-        #
-        # print('Sample input size: ', sample_x.size())  # batch_size, seq_length
-        # print('Sample input: \n', sample_x)
-        # print()
-        # print('Sample label size: ', sample_y.size())  # batch_size
-        # print('Sample label: \n', sample_y)
-
         output_size = 51
         embedding_dim = 400
         hidden_dim = 128 #256
@@ -138,7 +127,7 @@ def main():
         losses = np.zeros(n_epochs)  # For plotting
         accuracy = np.zeros(n_epochs)
 
-        lr = 0.001
+        lr = 0.01
         criterion = nn.CrossEntropyLoss() #nn.BCELoss()
         optimizer = torch.optim.Adam(lstmc.parameters(), lr=lr)
         counter = 0

@@ -21,7 +21,7 @@ class LyricLSTM(nn.Module):
                             dropout=drop_prob, batch_first=True)
 
         # dropout layer
-        self.dropout = nn.Dropout(0.3)
+        self.dropout = nn.Dropout(0.8) # TODO: maybe try more like 0.8 - keep 80%
 
         # linear and sigmoid layers
         self.fc = nn.Linear(hidden_dim, output_size)

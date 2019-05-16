@@ -30,7 +30,7 @@ def TokenizeDataset(songdict):
     encoded_years = np.array(years_raw)
 
     # NOTE: max song length is 1158 so make seq_length = 1150
-    seq_length = 1000
+    seq_length = 500
     padded_lyrics = pad_features(lyrics_int, seq_length)
 
     return encoded_years, padded_lyrics, len(vocab_to_int)+1 # +1 for padding
